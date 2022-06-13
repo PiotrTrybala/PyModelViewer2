@@ -2,9 +2,7 @@
 
 out vec4 out_color;
 
-in vec3 v_color;
-
 void main()
 {
-    out_color = vec4(v_color, 1.0);
+    out_color = vec4(0.5, 0.3, 0.2, 1.0);
 }

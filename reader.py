@@ -54,15 +54,15 @@ class ObjectReader:
                     if toks[0].count('/') == 2:
                         for i in range(3):
                             l = toks[i].split('/')
-                            self.indices.append(int(l[0]))
-                            self.textures_indices.append(int(l[1]))
-                            self.normals_indices.append(int(l[2]))
+                            self.indices.append(int(l[0]) - 1)
+                            self.textures_indices.append(int(l[1]) - 1)
+                            self.normals_indices.append(int(l[2]) - 1)
 
                     continue
 
                 if len(toks) == 4:
-                    t1 = [int(toks[0]), int(toks[2]), int(toks[1])]
-                    t2 = [int(toks[0]), int(toks[2]), int(toks[3])]
+                    t1 = [int(toks[0]) - 1, int(toks[2]) - 1, int(toks[1]) - 1]
+                    t2 = [int(toks[0]) - 1, int(toks[2]) - 1, int(toks[3]) - 1]
 
                     for t in t1:
                         self.indices.append(t)
@@ -70,9 +70,9 @@ class ObjectReader:
                         self.indices.append(t)
 
                 elif len(toks) == 3:
-                    self.indices.append(int(toks[0]))
-                    self.indices.append(int(toks[1]))
-                    self.indices.append(int(toks[2]))
+                    self.indices.append(int(toks[0]) - 1)
+                    self.indices.append(int(toks[1]) - 1)
+                    self.indices.append(int(toks[2]) - 1)
 
                 else:
                     print('invalid indice')
