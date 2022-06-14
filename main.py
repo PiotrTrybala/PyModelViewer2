@@ -2,6 +2,24 @@ import glfw
 import numpy as np
 from sys import exit
 from math import sin, cos, radians
+import random
+
+import sys
+
+filename = None
+
+
+try:
+    filename = sys.argv[1]
+except:
+    pass
+
+if not filename:
+    print('nie można znaleźć wartości dla zmiennej \'filename\'')
+    sys.exit(1)
+
+print(f"Plik obiektu (.obj): {filename}")
+
 
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
@@ -16,6 +34,7 @@ from reader import ObjectReader
 
 camera_pos = pyrr.Vector3([0.0, 0.0, 0.0])
 camera_front = pyrr.Vector3([0.0, 0.0, -1.0])
+camera_move_front = pyrr.Vector3([0.0, 0.0, -1.0])
 camera_up = pyrr.Vector3([0.0, 1.0, 0.0])
 
 def window_resize(window, width, height):
@@ -25,18 +44,18 @@ delta_time = 0.0
 last_frame = 0.0
 
 def process_input(window):
-    global delta_time, camera_pos, camera_front, camera_up
+    global delta_time, camera_pos, camera_front, camera_move_front, camera_up
 
-    camera_speed = 10.0 * delta_time
+    camera_speed = 20.0 * delta_time
 
     if glfw.get_key(window, glfw.KEY_W) == glfw.PRESS:
-        camera_pos += camera_speed * camera_front
+        camera_pos += camera_speed * camera_move_front
     if glfw.get_key(window, glfw.KEY_S) == glfw.PRESS:
-        camera_pos -= camera_speed * camera_front
+        camera_pos -= camera_speed * camera_move_front
     if glfw.get_key(window, glfw.KEY_A) == glfw.PRESS:
-        camera_pos -= pyrr.vector3.cross(camera_front, camera_up) * camera_speed
+        camera_pos -= pyrr.vector3.cross(camera_move_front, camera_up) * camera_speed
     if glfw.get_key(window, glfw.KEY_D) == glfw.PRESS:
-        camera_pos += pyrr.vector3.cross(camera_front, camera_up) * camera_speed
+        camera_pos += pyrr.vector3.cross(camera_move_front, camera_up) * camera_speed
     if glfw.get_key(window, glfw.KEY_SPACE) == glfw.PRESS:
         camera_pos += camera_up * camera_speed
     if glfw.get_key(window, glfw.KEY_LEFT_SHIFT) == glfw.PRESS:
@@ -50,7 +69,7 @@ last_x, last_y = 400, 400
 first_mouse = True
 
 def mouse_callback(window, xpos, ypos):
-    global yaw, pitch, last_x, last_y, camera_front, first_mouse
+    global yaw, pitch, last_x, last_y, camera_front, camera_move_front, first_mouse
 
     if first_mouse:
         last_x = xpos
@@ -82,6 +101,8 @@ def mouse_callback(window, xpos, ypos):
     direction.x = cos(radians(yaw)) * cos(radians(pitch))
     direction.y = sin(radians(pitch))
     direction.z = sin(radians(yaw)) * cos(radians(pitch))
+
+    camera_move_front = pyrr.vector3.normalise(pyrr.Vector3([direction.x, 0, direction.z]))
 
     camera_front = pyrr.vector3.normalise(direction)
 
@@ -119,14 +140,21 @@ glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
 glfw.make_context_current(window)
 
-object_reader = ObjectReader("cube.obj")
+object_reader = ObjectReader(filename)
 object_reader.parse()
 
-print(object_reader.vertices)
-print(object_reader.indices)
+colors = []
+
+for i in range(len(object_reader.vertices) // 3):
+    colors.append(random.random()) # wartość czerwonego w kolorze wyjściowym
+    colors.append(random.random()) # wartość niebieskiego w kolorze wyjściowym
+    colors.append(random.random()) # wartość zielonego w kolorze wyjściowym
+
+
 
 vertices = np.array(object_reader.vertices, dtype=np.float32)
 indices = np.array(object_reader.indices, dtype=np.uint32)
+colors = np.array(colors, dtype=np.float32)
 
 shader_reader = Shader("rectangle.vert", "rectangle.frag")
 
@@ -137,10 +165,9 @@ model_loc = glGetUniformLocation(shader, "model")
 view_loc = glGetUniformLocation(shader, "view")
 proj_loc = glGetUniformLocation(shader, "projection")
 
-model = pyrr.matrix44.create_from_translation(pyrr.Vector3([0.0, 0.0, -30.0]))
+model = pyrr.matrix44.create_from_translation(pyrr.Vector3([0.0, 0.0, -5.0]))
 view = pyrr.matrix44.create_from_translation(pyrr.Vector3([0.0, 0.0, -15.0]))
 projection = pyrr.matrix44.create_perspective_projection(60.0, WIDTH / HEIGHT, 0.1, 100)
-
 
 
 VAO = glGenVertexArrays(1)
@@ -150,15 +177,21 @@ VBO = glGenBuffers(1)
 glBindBuffer(GL_ARRAY_BUFFER, VBO)
 glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
 
+CBO = glGenBuffers(1)
+glBindBuffer(GL_ARRAY_BUFFER, CBO)
+glBufferData(GL_ARRAY_BUFFER, colors.nbytes, colors, GL_STATIC_DRAW)
+
 EBO = glGenBuffers(1)
 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
 glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
 
 glEnableVertexAttribArray(0)
+glBindBuffer(GL_ARRAY_BUFFER, VBO)
 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
 
-# glEnableVertexAttribArray(1)
-# glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(12))
+glEnableVertexAttribArray(1)
+glBindBuffer(GL_ARRAY_BUFFER, CBO)
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
 
 glUseProgram(shader)
 glBindVertexArray(0)

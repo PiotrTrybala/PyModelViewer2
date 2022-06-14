@@ -20,8 +20,6 @@ class ObjectReader:
 
         self.lines = self.f.readlines()
 
-        print(self.lines)
-
         self.f.close()
 
     def parse(self):
@@ -33,7 +31,7 @@ class ObjectReader:
                 continue
 
             if tokens[0] == 'v':
-                print(tokens[1:])
+                # print(tokens[1:])
                 for token in tokens[1:]:
                     self.vertices.append(float(token))
 
@@ -80,22 +78,23 @@ class ObjectReader:
 
 
             elif tokens[0] == 's':
-                print('smooth shading')
+                # print('smooth shading')
                 pass
             elif tokens[0] == 'usemtl':
-                print('material')
+                # print('material')
                 pass
             elif tokens[0] == 'g':
-                print('group')
+                # print('group')
                 pass
             elif tokens[0] == 'o':
-                print('object')
+                # print('object')
                 pass
             elif tokens[0] == 'mtllib':
-                print('material lib')
+                # print('material lib')
                 pass
             elif tokens[0] == '#':
-                print('comment')
+                # print('comment')
+                pass
 
         print(self.vertices)
 
