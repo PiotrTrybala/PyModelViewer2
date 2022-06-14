@@ -8,10 +8,13 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+uniform mat4 translation;
+uniform mat4 scale;
+
 out vec3 v_color;
 
 void main()
 {
-    gl_Position = projection * view * model * vec4(a_position, 1.0);
+    gl_Position = projection * view * model * translation * scale * vec4(a_position, 1.0);
     v_color = a_color;
 }

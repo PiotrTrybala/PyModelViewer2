@@ -6,8 +6,6 @@ MODELS_DIR = os.getcwd() + "/models"
 class ObjectReader:
     def __init__(self, filename):
 
-        print(MODELS_DIR + "/" + filename)
-
         self.f = open(MODELS_DIR + "/" + filename, 'r')
 
         self.vertices   = []
@@ -31,7 +29,6 @@ class ObjectReader:
                 continue
 
             if tokens[0] == 'v':
-                # print(tokens[1:])
                 for token in tokens[1:]:
                     self.vertices.append(float(token))
 
@@ -73,7 +70,8 @@ class ObjectReader:
                     self.indices.append(int(toks[2]) - 1)
 
                 else:
-                    print('invalid indice')
+                    # print('invalid indice')
+                    pass
 
 
 
@@ -95,8 +93,6 @@ class ObjectReader:
             elif tokens[0] == '#':
                 # print('comment')
                 pass
-
-        print(self.vertices)
 
     def combine_data(self, *args):
 

@@ -1,4 +1,5 @@
 import os
+from sys import exit
 
 class Shader:
     def __init__(self, vertex_file, fragment_file):
