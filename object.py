@@ -22,9 +22,9 @@ class Object:
             self.colors.append(random.random())
         self.colors = np.array(self.colors, dtype=np.float32)
         
-        shader_reader = Shader(vertex_file, fragment_file)
+        self.shader_reader = Shader(vertex_file, fragment_file)
 
-        self.shader = compileProgram(compileShader(shader_reader.vertex, GL_VERTEX_SHADER), compileShader(shader_reader.fragment, GL_FRAGMENT_SHADER))
+        self.shader = compileProgram(compileShader(self.shader_reader.vertex, GL_VERTEX_SHADER), compileShader(self.shader_reader.fragment, GL_FRAGMENT_SHADER))
 
         self.vao = glGenVertexArrays(1)
         glBindVertexArray(self.vao)
@@ -50,9 +50,36 @@ class Object:
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
 
         glBindVertexArray(0)
+    
+    def applyTransform(self, translation=None, model=None, view=None, projection=None, scale=None):
+
+        model_loc = glGetUniformLocation(self.shader, "model")
+        translation_loc = glGetUniformLocation(self.shader, "translation")
+        view_loc = glGetUniformLocation(self.shader, "view")
+        proj_loc = glGetUniformLocation(self.shader, "projection")
+        scale_loc = glGetUniformLocation(self.shader, "scale")
+
+        glUseProgram(self.shader)
+
+        if model is not None:
+            glUniformMatrix4fv(model_loc, 1, GL_FALSE, model)
+
+        if translation is not None:
+            glUniformMatrix4fv(view_loc, 1, GL_FALSE, view)
+
+        if view is not None:
+            glUniformMatrix4fv(proj_loc, 1, GL_FALSE, projection)
         
+        if projection is not None:
+            glUniformMatrix4fv(translation_loc, 1, GL_FALSE, translation)
+        
+        if scale is not None:
+            glUniformMatrix4fv(scale_loc, 1, GL_FALSE, scale)
+        glUseProgram(0)
+
     def render(self):
         glBindVertexArray(self.vao)
+        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
         glUseProgram(self.shader)
         glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, ctypes.c_void_p(0))
         glUseProgram(0)

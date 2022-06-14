@@ -15,4 +15,4 @@ class Shader:
             return out
         except Exception as e:
             print(f"this file does not exist: {filename}")
-            sys.exit(1)
+            exit(1)

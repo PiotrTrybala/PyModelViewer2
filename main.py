@@ -165,18 +165,24 @@ def scroll(window, xoffset, yoffset):
 object_reader = ObjectReader(filename)
 object_reader.parse()
 
-colors = []
-
-for i in range(len(object_reader.vertices) // 3):
-    colors.append(random.random())  # wartość czerwonego w kolorze wyjściowym
-    colors.append(random.random())  # wartość niebieskiego w kolorze wyjściowym
-    colors.append(random.random())  # wartość zielonego w kolorze wyjściowym
-
 vertices = np.array(object_reader.vertices, dtype=np.float32)
 indices = np.array(object_reader.indices, dtype=np.uint32)
-colors = np.array(colors, dtype=np.float32)
 
-shader_reader = Shader("rectangle.vert", "rectangle.frag")
+objr = ObjectReader("humanoid.obj");
+objr.parse()
+
+
+plane_vertices = [
+     5.0,  0.6,  5.0,
+     5.0,  0.6, -5.0,
+    -5.0,  0.6,  5.0,
+    -5.0,  0.6, -5.0,
+]
+
+plane_indices = [
+    0, 1, 2, 
+    1, 2, 3,
+]
 
 if not glfw.init():
     raise Exception("glfw init cannot be initialized!")
@@ -199,15 +205,8 @@ glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
 glfw.make_context_current(window)
 
-# shader = compileProgram(compileShader(shader_reader.vertex,
-#                                       GL_VERTEX_SHADER), compileShader(shader_reader.fragment, GL_FRAGMENT_SHADER))
 boat = Object(vertices, indices, "rectangle.vert", "rectangle.frag")
-
-model_loc = glGetUniformLocation(boat.shader, "model")
-translation_loc = glGetUniformLocation(boat.shader, "translation")
-view_loc = glGetUniformLocation(boat.shader, "view")
-proj_loc = glGetUniformLocation(boat.shader, "projection")
-scale_loc = glGetUniformLocation(boat.shader, "scale")
+plane = Object(plane_vertices, plane_vertices, "plane.vert", "plane.frag")
 
 model = pyrr.matrix44.create_from_translation(pyrr.Vector3(position))
 
@@ -224,33 +223,6 @@ model = pyrr.matrix44.multiply(rotation_xyz, model)
 view = pyrr.matrix44.create_from_translation(pyrr.Vector3([0.0, 0.0, -15.0]))
 projection = pyrr.matrix44.create_perspective_projection(
     60.0, WIDTH / HEIGHT, 0.1, 100)
-
-# VAO = glGenVertexArrays(1)
-# glBindVertexArray(VAO)
-
-# VBO = glGenBuffers(1)
-# glBindBuffer(GL_ARRAY_BUFFER, VBO)
-# glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
-
-# CBO = glGenBuffers(1)
-# glBindBuffer(GL_ARRAY_BUFFER, CBO)
-# glBufferData(GL_ARRAY_BUFFER, colors.nbytes, colors, GL_STATIC_DRAW)
-
-# EBO = glGenBuffers(1)
-# glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
-# glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
-
-# glEnableVertexAttribArray(0)
-# glBindBuffer(GL_ARRAY_BUFFER, VBO)
-# glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
-
-# glEnableVertexAttribArray(1)
-# glBindBuffer(GL_ARRAY_BUFFER, CBO)
-# glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
-
-# glUseProgram(shader)
-# glBindVertexArray(0)
-
 
 glClearColor(0.1, 0.2, 0.3, 1.0)
 glEnable(GL_DEPTH_TEST)
@@ -273,18 +245,11 @@ while not glfw.window_should_close(window):
     projection = pyrr.matrix44.create_perspective_projection(
         fov, WIDTH / HEIGHT, 0.1, 100)
 
-    glUniformMatrix4fv(model_loc, 1, GL_FALSE, model)
-    glUniformMatrix4fv(view_loc, 1, GL_FALSE, view)
-    glUniformMatrix4fv(proj_loc, 1, GL_FALSE, projection)
-    glUniformMatrix4fv(translation_loc, 1, GL_FALSE, translation)
-    glUniformMatrix4fv(scale_loc, 1, GL_FALSE, scale)
-
-    # glUseProgram(shader)
-    # glBindVertexArray(VAO)
-    # glDrawElements(GL_TRIANGLES, len(indices),
-    #            GL_UNSIGNED_INT, ctypes.c_void_p(0))
+    boat.applyTransform(translation=translation, model=model, view=view, projection=projection, scale=scale)
+    plane.applyTransform(translation=translation, model=model, view=view, projection=projection, scale=scale)
 
     boat.render()
+    plane.render()
 
     glfw.swap_buffers(window)
 
